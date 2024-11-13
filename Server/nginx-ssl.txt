@@ -1,5 +1,4 @@
-```
-/etc/nginx/sites-available/
+```/etc/nginx/sites-available/
 sudo systemctl restart nginx
 certbot
 ```
