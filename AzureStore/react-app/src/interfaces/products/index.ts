@@ -19,8 +19,7 @@ export interface IProductEdit {
     name: string;
     price: number;
     categoryId: number;
-    newImages?: File[];
-    removeImages?: string[];
+    images?: File[];
 }
 
 export interface IUploadedFile {

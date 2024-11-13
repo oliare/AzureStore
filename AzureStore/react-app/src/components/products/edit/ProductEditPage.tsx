@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { httpService, BASE_URL } from '../../../api/http-service';
 import { Button, Form, Modal, Input, Upload, UploadFile, Space, InputNumber, Select } from "antd";
-import { RcFile, UploadChangeParam } from "antd/es/upload";
+import { UploadProps, RcFile } from "antd/es/upload";
 import { PlusOutlined } from '@ant-design/icons';
 import { IProductEdit, IProductItem } from "../../../interfaces/products";
 import { ICategoryName } from '../../../interfaces/categories';
+import { DndContext, DragEndEvent, PointerSensor, useSensor } from "@dnd-kit/core";
+import { arrayMove, horizontalListSortingStrategy, SortableContext } from "@dnd-kit/sortable";
+import DraggableUploadListItem from "../../common/graggableListItem/graggableListItem";
 
 const ProductEditPage = () => {
     const { id } = useParams();
@@ -17,7 +20,6 @@ const ProductEditPage = () => {
     const [previewImage, setPreviewImage] = useState('');
     const [previewTitle, setPreviewTitle] = useState('');
     const [categories, setCategories] = useState<ICategoryName[]>([]);
-    const [removeFiles, setRemoveFiles] = useState<string[]>([]);
 
     useEffect(() => {
         httpService.get<ICategoryName[]>("/api/Categories/names")
@@ -39,8 +41,9 @@ const ProductEditPage = () => {
                         uid: data.images[i],
                         name: data.images[i],
                         status: "done",
+                        originFileObj: new File([new Blob([''])], data.images[i], { type: "old-image" }),
                         url: `${BASE_URL}/images/1200_${data.images[i]}`,
-                    });
+                    } as UploadFile);
                 }
                 setFiles(newFileList);
             })
@@ -56,10 +59,8 @@ const ProductEditPage = () => {
                 price: values.price,
                 name: values.name,
                 categoryId: values.categoryId,
-                newImages: files
-                    .filter(file => file.originFileObj)
+                images: files
                     .map(file => file.originFileObj as File),
-                removeImages: removeFiles,
                 id: Number(id),
             };
 
@@ -74,13 +75,32 @@ const ProductEditPage = () => {
         }
     };
 
-    const handleRemove = (file: UploadFile) => {
-        if (file.name && !file.originFileObj) {
-            setRemoveFiles(prev => [...prev, file.name]);
+    //draggble logic    
+    const sensor = useSensor(PointerSensor, {
+        activationConstraint: { distance: 10 },
+    });
+
+    const onDragEnd = ({ active, over }: DragEndEvent) => {
+        if (active.id !== over?.id) {
+            setFiles((prev) => {
+                const activeIndex = prev.findIndex((i) => i.uid === active.id);
+                const overIndex = prev.findIndex((i) => i.uid === over?.id);
+                return arrayMove(prev, activeIndex, overIndex);
+            });
         }
-        console.log("Remove file: ", file);
-        return true;
     };
+
+    const handleChangeFiles: UploadProps["onChange"] = ({ fileList: newFileList }) => {
+        setFiles(newFileList);
+    };
+
+    const uploadButton = (
+        <button style={{ border: 0, background: "none" }} type="button">
+            <PlusOutlined />
+            <div style={{ marginTop: 8 }}>Upload</div>
+        </button>
+    );
+
 
     return (
         <>
@@ -105,34 +125,36 @@ const ProductEditPage = () => {
                     </Select>
                 </Form.Item>
 
-                <Form.Item name="images" label="Photo" valuePropName="Image"
-                    rules={[{ required: true, message: "Please choose a photo for the product." }]}
-                    getValueFromEvent={(e: UploadChangeParam) => {
-                        return e?.fileList.map(file => file.originFileObj);
-                    }}>
+                <Form.Item label="Фото">
+                    <DndContext sensors={[sensor]} onDragEnd={onDragEnd}>
+                        <SortableContext
+                            items={files.map((i) => i.uid)}
+                            strategy={horizontalListSortingStrategy}
+                        >
+                            <Upload
+                                beforeUpload={() => false}
+                                accept="image/*"
+                                listType="picture-card"
+                                fileList={files}
+                                multiple
+                                onChange={handleChangeFiles}
+                                itemRender={(originNode, file) => (
+                                    <DraggableUploadListItem originNode={originNode} file={file} />
+                                )}
+                                onPreview={(file: UploadFile) => {
+                                    if (!file.url && !file.preview) {
+                                        file.preview = URL.createObjectURL(file.originFileObj as RcFile);
+                                    }
+                                    setPreviewImage(file.url || (file.preview as string));
+                                    setPreviewOpen(true);
+                                    setPreviewTitle(file.name || file.url!.substring(file.url!.lastIndexOf('/') + 1));
+                                }}
 
-                    <Upload beforeUpload={() => false} accept="image/*" maxCount={10} listType="picture-card" multiple
-                        fileList={files}
-                        onRemove={handleRemove}
-                        onChange={(data) => {
-                            setFiles(data.fileList);
-                            console.log("Updated files list: ", data.fileList);
-                        }}
-                        onPreview={(file: UploadFile) => {
-                            if (!file.url && !file.preview) {
-                                file.preview = URL.createObjectURL(file.originFileObj as RcFile);
-                            }
-
-                            setPreviewImage(file.url || (file.preview as string));
-                            setPreviewOpen(true);
-                            setPreviewTitle(file.name || file.url!.substring(file.url!.lastIndexOf('/') + 1));
-                        }}>
-
-                        <div>
-                            <PlusOutlined />
-                            <div style={{ marginTop: 8 }}>Upload</div>
-                        </div>
-                    </Upload>
+                            >
+                                {files.length >= 8 ? null : uploadButton}
+                            </Upload>
+                        </SortableContext>
+                    </DndContext>
                 </Form.Item>
 
                 <Form.Item wrapperCol={{ span: 10, offset: 10 }}>

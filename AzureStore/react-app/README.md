@@ -26,12 +26,11 @@ docker run -d --restart=always --name store-client_container -p 5145:80 olia1/st
 ```
 
 
-```
-nginx options /etc/nginx/sites-available/default
+```nginx options /etc/nginx/sites-available/default
 
 server {
 
-  server_name   azurestore.itstep.click *.azurestore.itstep.click;
+  server_name azurestore.itstep.click *.azurestore.itstep.click;
     location / {
        proxy_pass         http://localhost:5145;
        proxy_http_version 1.1;
