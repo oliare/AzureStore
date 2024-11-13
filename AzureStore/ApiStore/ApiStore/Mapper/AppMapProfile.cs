@@ -28,7 +28,7 @@ public class AppMapProfile : Profile
 
         // Products
         CreateMap<ProductEntity, ProductItemViewModel>()
-           .ForMember(x => x.Images, opt => opt.MapFrom(x => x.ProductImages
+           .ForMember(x => x.Images, opt => opt.MapFrom(x => x.ProductImages.OrderBy(x=>x.Priority)
            .Select(p => p.Image).ToArray()))
            .ForMember(x => x.CategoryName, opt => opt.MapFrom(x => x.Category.Name));
 

@@ -7,6 +7,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Mime;
 
 namespace ApiStore.Controllers
 {
@@ -58,36 +59,41 @@ namespace ApiStore.Controllers
 
             mapper.Map(model, product);
 
-            if (model.RemoveImages != null)
-            {
-                var imagesToDelete = context.ProductImages
-                    .Where(img => model.RemoveImages.Contains(img.Image))
-                    .ToList();
+            var oldImagesNames = model.Images?.Where(x => x.ContentType.Contains("old-image"))
+                .Select(x => x.FileName) ?? [];
 
-                foreach (var img in imagesToDelete)
-                {
-                    imageTool.Delete(img.Image);
-                    context.ProductImages.Remove(img);
-                }
+            var imagesToDelete = product?.ProductImages?.Where(x => !oldImagesNames.Contains(x.Image)) ?? [];
+
+            foreach (var img in imagesToDelete)
+            {
+                context.ProductImages.Remove(img);
+                imageTool.Delete(img.Image);
             }
 
-            if (model.NewImages != null)
+            if (model.Images is not null)
             {
-                int maxPriority = product.ProductImages.Max(img => img.Priority);
-                foreach (var img in model.NewImages)
+                int index = 0;
+                foreach (var image in model.Images)
                 {
-                    if (img != null)
+                    if (image.ContentType == "old-image")
                     {
-                        var imagePath = await imageTool.Save(img);
+                        var oldImages = product?.ProductImages?.FirstOrDefault(x => x.Image == image.FileName);
+                        oldImages.Priority = index;
+                    }
+                    else
+                    {
+                        var imagePath = await imageTool.Save(image);
                         context.ProductImages.Add(new ProductImageEntity
                         {
                             Image = imagePath,
                             ProductId = product.Id,
-                            Priority = ++maxPriority
+                            Priority = index
                         });
                     }
+                    index++;
                 }
             }
+
             await context.SaveChangesAsync();
 
             return Ok();
