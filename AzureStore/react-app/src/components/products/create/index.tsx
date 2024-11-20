@@ -4,9 +4,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { httpService } from '../../../api/http-service';
 import { RcFile, UploadChangeParam } from "antd/es/upload";
 import { PlusOutlined } from '@ant-design/icons';
-import { IProductCreate } from '../../../interfaces/products';
+import { IProductCreate, IProductImageDesc } from '../../../interfaces/products';
 import Loader from '../../common/loader/Loader';
 import { ICategoryItem, ICategoryName } from '../../../interfaces/categories';
+import EditorTiny from '../../common/EditorTiny/index';
 
 const ProductCreatePage = () => {
 
@@ -19,6 +20,9 @@ const ProductCreatePage = () => {
     const [previewImage, setPreviewImage] = useState('');
     const [previewTitle, setPreviewTitle] = useState('');
 
+    const [description, setDescription] = useState<string>('');
+    const [descImages, setDescImages] = useState<IProductImageDesc[]>([]);
+
     useEffect(() => {
         httpService.get<ICategoryItem[]>("/api/Categories/names")
             .then(resp => {
@@ -30,8 +34,14 @@ const ProductCreatePage = () => {
         setLoading(true);
         try {
             console.log("Send Data:", values);
+            const imagesDescIds = descImages.map((x) => {
+                return x.id;
+            })
 
-            httpService.post("/api/Products", values,
+            const productData = { ...values, description, imagesDescIds };
+            console.log("Send Data:", productData);
+
+            httpService.post("/api/Products", productData,
                 {
                     headers: { "Content-Type": "multipart/form-data" }
                 }).then(resp => {
@@ -43,6 +53,10 @@ const ProductCreatePage = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const setCBImages = (image: IProductImageDesc) => {
+        setDescImages((prevImages) => [...prevImages, image]);
     };
 
     return (
@@ -70,6 +84,19 @@ const ProductCreatePage = () => {
                             ))}
                         </Select>
                     </Form.Item>
+
+                    {/* <Form.Item name="description" label="Description" hasFeedback
+                               rules={[{required: true, message: 'Please provide a valid description.'}]}> */}
+                    <EditorTiny
+                        label="Description"
+                        value={description}
+                        field="description" 
+                        getSelectImage={setCBImages}
+                        onEditorChange={(text: string) => {
+                            setDescription(text); 
+                        }}
+                    />
+                    {/* </Form.Item> */}
 
                     <Form.Item name="images" label="Photo" valuePropName="Image"
                         rules={[{ required: true, message: "Please choose a photo for the product." }]}

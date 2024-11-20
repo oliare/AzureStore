@@ -5,13 +5,20 @@ export interface IProductItem {
     images: string[],
     categoryName: string,
     categoryId: number,
+    description: string;
 }
 
 export interface IProductCreate {
     name: string,
     price: number,
     categoryId: number,
+    description: string,
     images: File[]|null,
+}
+
+export interface IProductImageDesc {
+    id: number,
+    image: string,
 }
 
 export interface IProductEdit {
