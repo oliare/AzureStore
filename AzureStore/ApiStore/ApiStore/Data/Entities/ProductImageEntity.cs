@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿    using System.ComponentModel.DataAnnotations.Schema;
+    using System.ComponentModel.DataAnnotations;
 
-namespace ApiStore.Data.Entities
-{
+    namespace ApiStore.Data.Entities;
+
     public class ProductImageEntity
     {
         [Key]
@@ -14,4 +14,4 @@ namespace ApiStore.Data.Entities
         public int ProductId { get; set; }
         public virtual ProductEntity? Product { get; set; }
     }
-}
+

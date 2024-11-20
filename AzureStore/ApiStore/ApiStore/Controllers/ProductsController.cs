@@ -1,13 +1,14 @@
 ﻿using ApiStore.Data;
 using ApiStore.Data.Entities;
 using ApiStore.Interfaces;
-using ApiStore.Models.Category;
 using ApiStore.Models.Product;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Net.Mime;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace ApiStore.Controllers
 {
@@ -29,6 +30,13 @@ namespace ApiStore.Controllers
             var entity = mapper.Map<ProductEntity>(model);
             context.Products.Add(entity);
             context.SaveChanges();
+
+            if (model.ImagesDescIds.Count != 0)
+            {
+                await context.ProductDescImages
+                    .Where(x => model.ImagesDescIds.Contains(x.Id))
+                    .ForEachAsync(x => x.ProductId = entity.Id);
+            }
 
             if (model.Images != null)
             {
@@ -125,6 +133,23 @@ namespace ApiStore.Controllers
             context.Products.Remove(product);
             context.SaveChanges();
             return Ok();
+        }
+
+        [HttpPost("uploads")]
+        public async Task<ActionResult<ProductDescImageIdViewModel>> UploadDescImage([FromForm] ProductDescImageUploadViewModel model)
+        {
+            if (model.Image != null)
+            {
+                var pdi = new ProductDescImageEntity
+                {
+                    Image = await imageTool.Save(model.Image),
+                    DateCreate = DateTime.UtcNow,
+                };
+                context.ProductDescImages.Add(pdi);
+                await context.SaveChangesAsync();
+                return Ok(ProductDescImageIdViewModel.Create(pdi));
+            }
+            return BadRequest();
         }
 
     }
