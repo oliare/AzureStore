@@ -4,7 +4,6 @@ import { IProductItem } from '../../../interfaces/products';
 import { useParams, Link } from 'react-router-dom';
 import { Button, Carousel, Collapse } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
-import { } from 'antd';
 const { Panel } = Collapse;
 
 const ProductDetailPage = () => {

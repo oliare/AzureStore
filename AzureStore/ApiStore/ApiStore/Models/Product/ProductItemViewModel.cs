@@ -8,6 +8,5 @@ public class ProductItemViewModel
     public int CategoryId { get; set; }
     public string? CategoryName { get; set; }
     public string? Description { get; set; }
-    public List<string>? DescriptionImages { get; set; }
     public List<string>? Images { get; set; }
 }
