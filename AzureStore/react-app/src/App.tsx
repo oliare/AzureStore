@@ -4,7 +4,7 @@ import MainLayout from "./components/containers/default";
 import HomePage from "./components/home/index";
 import { Route, Routes } from "react-router-dom";
 import ProductListPage from "./components/products/list";
-import ProductCreatePage from "./components/products/create";
+import ProductCreatePage from "./components/products/create/ProductCreatePage";
 import ProductEditPage from "./components/products/edit/ProductEditPage";
 import LoginPage from "./components/auth/login";
 import RegisterPage from "./components/auth/register";

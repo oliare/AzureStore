@@ -26,6 +26,8 @@ export interface IProductEdit {
     name: string;
     price: number;
     categoryId: number;
+    description: string,
+    descImages?: IProductImageDesc[]; 
     images?: File[];
 }
 

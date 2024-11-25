@@ -5,29 +5,25 @@ import { IProductImageDesc } from "../../../interfaces/products";
 
 interface IEditorProps extends IAllProps {
   // onEditorChange *
-  label: string; 
-  field: string; 
   getSelectImage: (image: IProductImageDesc) => void;
+  onEditorChange: (value: string) => void;
+  value?: string;
 }
 
 const EditorTiny: FC<IEditorProps> = ({
-  label,
-  field,
-  getSelectImage,
+  getSelectImage, 
+  onEditorChange, 
+  value,
   ...props
 }) => {
 
   return (
-    <div className="mb-3">
-      <label htmlFor={field} className="form-label">
-        {label}
-      </label>
-      <div>
         <Editor
           apiKey="wob1dim1h21fvpv4pf71g3y5x8u2inau7jnu00sf4ust5uex"
           // initialValue="<p>This is the initial content of the editor</p>"
           {...props}
-          value={props.value}
+          value={value}
+          onEditorChange={onEditorChange} 
           init={{
             height: 300,
             language: "uk", // panel language
@@ -90,19 +86,6 @@ const EditorTiny: FC<IEditorProps> = ({
 
                     });
 
-                  // const reader = new FileReader();
-                  // reader.readAsDataURL(file);
-                  // reader.onload = function () {
-                  //   const base64 = reader.result as string;
-                  //   console.log("Base64 image:", base64);
-
-                  //   httpService
-                  //     .post("api/products/uploads", { image: base64 })
-                  //     .then((resp) => {
-                  //       const fileName = BASE_URL + "/images/" + resp.data.name;
-                  //       cb(fileName);
-                  //     });
-                  // };
                 }
                 (e.target as HTMLInputElement).value = "";
               });
@@ -113,8 +96,6 @@ const EditorTiny: FC<IEditorProps> = ({
           //toolbar="code"
           {...props}
         />
-      </div>
-    </div>
   );
 };
 

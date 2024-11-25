@@ -4,11 +4,12 @@ import { httpService, BASE_URL } from '../../../api/http-service';
 import { Button, Form, Modal, Input, Upload, UploadFile, Space, InputNumber, Select } from "antd";
 import { UploadProps, RcFile } from "antd/es/upload";
 import { PlusOutlined } from '@ant-design/icons';
-import { IProductEdit, IProductItem } from "../../../interfaces/products";
+import { IProductEdit, IProductImageDesc, IProductItem } from "../../../interfaces/products";
 import { ICategoryName } from '../../../interfaces/categories';
 import { DndContext, DragEndEvent, PointerSensor, useSensor } from "@dnd-kit/core";
 import { arrayMove, horizontalListSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import DraggableUploadListItem from "../../common/graggableListItem/graggableListItem";
+import EditorTiny from "../../common/EditorTiny";
 
 const ProductEditPage = () => {
     const { id } = useParams();
@@ -20,6 +21,9 @@ const ProductEditPage = () => {
     const [previewImage, setPreviewImage] = useState('');
     const [previewTitle, setPreviewTitle] = useState('');
     const [categories, setCategories] = useState<ICategoryName[]>([]);
+
+    const [description, setDescription] = useState<string>('');
+    const [descImages, setDescImages] = useState<IProductImageDesc[]>([]);
 
     useEffect(() => {
         httpService.get<ICategoryName[]>("/api/Categories/names")
@@ -61,6 +65,8 @@ const ProductEditPage = () => {
                 categoryId: values.categoryId,
                 images: files
                     .map(file => file.originFileObj as File),
+                description: description,
+                descImages: descImages,
                 id: Number(id),
             };
 
@@ -101,6 +107,9 @@ const ProductEditPage = () => {
         </button>
     );
 
+    const setCBImages = (image: IProductImageDesc) => {
+        setDescImages((prevImages) => [...prevImages, image]);
+    };
 
     return (
         <>
@@ -123,6 +132,15 @@ const ProductEditPage = () => {
                             <Select.Option key={c.id} value={c.id}> {c.name}</Select.Option>
                         ))}
                     </Select>
+                </Form.Item>
+
+                <Form.Item name="description" label="Description" hasFeedback
+                    rules={[{ required: true, message: 'Please provide a valid description.' }]}>
+                    <EditorTiny
+                        value={description}
+                        getSelectImage={setCBImages}
+                        onEditorChange={(text: string) => { setDescription(text); }}
+                    />
                 </Form.Item>
 
                 <Form.Item label="Фото">

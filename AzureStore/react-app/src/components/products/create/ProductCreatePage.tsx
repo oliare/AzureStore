@@ -85,18 +85,14 @@ const ProductCreatePage = () => {
                         </Select>
                     </Form.Item>
 
-                    {/* <Form.Item name="description" label="Description" hasFeedback
-                               rules={[{required: true, message: 'Please provide a valid description.'}]}> */}
-                    <EditorTiny
-                        label="Description"
-                        value={description}
-                        field="description" 
-                        getSelectImage={setCBImages}
-                        onEditorChange={(text: string) => {
-                            setDescription(text); 
-                        }}
-                    />
-                    {/* </Form.Item> */}
+                    <Form.Item name="description" label="Description" hasFeedback
+                        rules={[{ required: true, message: 'Please provide a valid description.' }]}>
+                        <EditorTiny
+                            value={description}
+                            getSelectImage={setCBImages}
+                            onEditorChange={(text: string) => { setDescription(text); }}
+                        />
+                    </Form.Item>
 
                     <Form.Item name="images" label="Photo" valuePropName="Image"
                         rules={[{ required: true, message: "Please choose a photo for the product." }]}
