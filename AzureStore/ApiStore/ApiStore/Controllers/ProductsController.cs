@@ -63,21 +63,38 @@ namespace ApiStore.Controllers
         {
             var product = await context.Products
                 .Include(p => p.ProductImages)
+                .Include(x => x.ProductDescImages)
                 .FirstOrDefaultAsync(p => p.Id == model.Id);
 
             mapper.Map(model, product);
 
+            // handle description images
+            var descImagesToDelete = product.ProductDescImages
+               .Where(x => !model.ImagesDescIds.Contains(x.Id))
+               .ToList();
+
+            context.ProductDescImages.RemoveRange(descImagesToDelete);
+            foreach (var img in descImagesToDelete) imageTool.Delete(img.Image);
+
+            if (model.ImagesDescIds.Any())
+            {
+                await context.ProductDescImages
+                    .Where(x => model.ImagesDescIds.Contains(x.Id))
+                    .ForEachAsync(x => x.ProductId = product.Id);
+            }
+
+            // handle product images
             var oldImagesNames = model.Images?.Where(x => x.ContentType.Contains("old-image"))
                 .Select(x => x.FileName) ?? [];
 
             var imagesToDelete = product?.ProductImages?.Where(x => !oldImagesNames.Contains(x.Image)) ?? [];
-
+                       
             foreach (var img in imagesToDelete)
             {
                 context.ProductImages.Remove(img);
                 imageTool.Delete(img.Image);
             }
-
+            
             if (model.Images is not null)
             {
                 int index = 0;
